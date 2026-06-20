@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: "Inter", "JetBrains Mono", sans-serif;
+    background: #f8fafc;
+    color: #1e293b;
+    overflow: hidden;
+    height: 100vh;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+
+/* Scanline for video */
+.scanline {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.06) 2px,
+    rgba(0,0,0,0.06) 4px
+  );
+  pointer-events: none;
+}
+
+/* Fix leaflet map z-index layering inside flex containers */
+.leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
+  background: #f8fafc !important;
+}
+.leaflet-control-zoom {
+  border: 1px solid rgba(0,0,0,0.1) !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+}
+.leaflet-control-zoom a {
+  background: #ffffff !important;
+  color: #64748b !important;
+  border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+}
+.leaflet-control-zoom a:hover {
+  background: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+/* Splitter Gutter styling */
+.gutter {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: 50%;
+  cursor: col-resize;
+  position: relative;
+  transition: background-color 0.2s;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gutter:hover {
+  background-color: rgba(37, 99, 235, 0.05);
+}
+.gutter::after {
+  content: "";
+  height: 40px;
+  width: 4px;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s;
+}
+.gutter:hover::after {
+  background-color: rgba(37, 99, 235, 0.6);
+}
