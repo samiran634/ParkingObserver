@@ -76,7 +76,7 @@ ParkingObserver divides its ML workload into an Edge (Perception) layer and a Cl
 - **Vision at the Edge:** Python-based scripts ingest local legacy CCTV camera feeds (`.mp4` loops for simulation) using OpenCV.
 - **YOLOv8 & Geometry:** Uses YOLOv8n for real-time object detection. It applies an **Inverse Perspective Mapping (IPM)** homography matrix to convert 2D pixel bounding boxes into real-world 3D width estimates (in meters) for vehicles and roads.
 - **State Machine & Bandwidth Efficiency:** Raw video is **never** sent to the cloud. A local state machine tracks stationary vehicles. If a vehicle exceeds the permitted dwell time (e.g., 3 minutes), the edge node fires a tiny JSON payload (`~2KB`) containing the telemetry to the central server.
-![Image sample](assets/ML_architecture.PNG)
+![Image sample](assets/ML_architecture.png)
 ### 2. Stage 2: Central Feature Enrichment (Hydration)
 *Located in the Cloud / Traffic Police HQ servers.*
 - **Intelligent Aggregation:** A blazing fast **FastAPI (Python)** server receives the 2KB JSON payloads.
