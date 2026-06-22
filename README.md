@@ -14,7 +14,7 @@ ParkingObserver solves this by adopting a **"Smart Edge"** architecture.
 2. **Edge Processing (NVR)**: The NVR runs the localized ML prediction software (YOLOv8 converted to an ONNX model). 
     * a note on Threshold: The number of camera streams an NVR can process simultaneously is limited by its GPU's VRAM (e.g., Total VRAM / VRAM per model instance). For optimal performance, rather than using multiple independent threads, the NVR should use 'Batch Processing' (combining frames from all cameras into a single batch) to pass through the GPU at once.
 3. **Event Generation**: The Edge model generates an event based solely on Dwell Time (not approval/rejection). If a vehicle is stationary in a restricted zone for > 3 minutes, it triggers an "active" violation event. If the vehicle leaves, it triggers a "cleared" event.
-![Image example](assets/ArchitectureFlow.PNG)
+![Image sample](assets/ArchitectureFlow.PNG)
 4. **Transmission**: The NVR sends a tiny JSON payload containing the event data over the network to the centralized server.
 5. **Centralized Server**: The Python backend (FastAPI) at City HQ receives the JSON payload. Here, the secondary CatBoost ML model runs to "Approve" or "Reject" the violation (filtering false positives) and calculates the Congestion Impact Score and Economic Benefit (ROI).
 6.** Command Center Dashboard**: The Central Server pushes this aggregated, global data to the React Frontend Dashboard at the Central Traffic Police HQ. The street-level NVRs run headless (without monitors) to conserve resources; the UI is strictly for central dispatchers.
@@ -76,14 +76,18 @@ ParkingObserver divides its ML workload into an Edge (Perception) layer and a Cl
 - **Vision at the Edge:** Python-based scripts ingest local legacy CCTV camera feeds (`.mp4` loops for simulation) using OpenCV.
 - **YOLOv8 & Geometry:** Uses YOLOv8n for real-time object detection. It applies an **Inverse Perspective Mapping (IPM)** homography matrix to convert 2D pixel bounding boxes into real-world 3D width estimates (in meters) for vehicles and roads.
 - **State Machine & Bandwidth Efficiency:** Raw video is **never** sent to the cloud. A local state machine tracks stationary vehicles. If a vehicle exceeds the permitted dwell time (e.g., 3 minutes), the edge node fires a tiny JSON payload (`~2KB`) containing the telemetry to the central server.
-
+![Image sample](assets/ML_architecture.PNG)
 ### 2. Stage 2: Central Feature Enrichment (Hydration)
 *Located in the Cloud / Traffic Police HQ servers.*
 - **Intelligent Aggregation:** A blazing fast **FastAPI (Python)** server receives the 2KB JSON payloads.
 - **Mathematical Context Extraction:** Because we cannot rely on external maps, the model generates its own context:
   - Looks up the historical `device_approval_rate` for the reporting camera.
   - Applies **K-Means Spatial Clustering** to the coordinates to mathematically assign the "vibe" of the street based on historical 24-hour traffic profiles.
+    - As The hackathon strictly prohibited the use of external datasets or APIs (like Google Maps). As a result, the model is "blind" to physical road conditions. We solved this by using **K-Means Clustering** as an unsupervised feature extraction step. The model looks at 24-hour traffic volume profiles and groups locations into 4 clusters, mathematically guessing the "vibe" of the street (e.g., highway vs. residential) without needing a real map. This portion is just to real world data, can be replaced by external apis. 
+
   - Converts the vehicle type into standard physical **Passenger Car Unit (PCU) weights** (e.g., Car=1.0, Bus=3.0).
+    - this is also a simulation and solved by external api intigration. The model should learn these weights naturally from reality. By integrating traffic APIs, we would change the target variable to the **actual delay in seconds** or **speed drop percentage** observed during a violation. By passing the vehicle type as a text feature, the model would automatically discover that violations involving a "BUS" cause a steeper speed drop than a "CAR", without requiring human-hardcoded assumptions.
+
 
 ### 3. Stage 3: The Two-Stage Predictive Model (Decision & Ranking)
 *Located in the Cloud.*
